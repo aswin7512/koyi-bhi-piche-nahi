@@ -35,7 +35,7 @@ To get a local copy of this prototype up and running, follow these simple steps.
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/aswin7512/koyi-bhi-piche-nahi.git](https://github.com/7512/koyi-bhi-piche-nahi.git)
+    git clone https://github.com/aswin7512/koyi-bhi-piche-nahi.git
     ```
 2.  **Navigate to the project directory**
     ```bash
@@ -44,8 +44,6 @@ To get a local copy of this prototype up and running, follow these simple steps.
 3.  **Install dependencies**
     ```bash
     npm install
-    # or
-    yarn install
     ```
 
 ### Running the App
@@ -54,8 +52,20 @@ Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-### Find the Deployed app [here](https://aswin7512.github.io/koyi-bhi-piche-nahi)
+### **Find the Deployed app:** [click here](https://aswin7512.github.io/koyi-bhi-piche-nahi)
+
+**Use the credintials to checkout my app**
+
+* **admin login**
+    * email: `admin@example.com`
+    * password: `admin@123`
+
+* **student login**
+    * email: `student@example.com`
+    * password: `student@123`
+    
+* **parent login**
+    * email: `parent@example.com`
+    * password: `parent@123`
