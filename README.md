@@ -22,6 +22,36 @@ This project aims to demonstrate that with the right support and direction, ever
 * ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white) **Vite** - Build Tool & Development Server
 * **CSS/Tailwind** (Update this based on what you used for styling)
 
+## 📂 Project Structure
+
+Here is an overview of the file structure for the project:
+
+```text
+.
+├── App.tsx                  # Main Application Component
+├── components               # Reusable UI components
+│   ├── Button.tsx
+│   └── Navbar.tsx
+├── constants.ts             # Global constants and configuration
+├── index.html               # Entry HTML file
+├── index.tsx                # Entry point for React
+├── public                   # Static assets
+│   └── cover.jpg
+├── types.ts                 # TypeScript type definitions
+├── views                    # Page components and Route views
+│   ├── AdminDashboard.tsx
+│   ├── GameArea.tsx
+│   ├── GameList.tsx
+│   ├── GamePlay.tsx
+│   ├── GameResult.tsx
+│   ├── Login.tsx
+│   ├── ParentDashboard.tsx
+│   ├── Performance.tsx
+│   ├── StudentDashboard.tsx
+│   └── Support.tsx
+└── vite.config.ts           # Vite configuration
+```
+
 ## 🚀 Getting Started
 
 To get a local copy of this prototype up and running, follow these simple steps.
