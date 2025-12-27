@@ -56,10 +56,14 @@ export const GamePlay: React.FC = () => {
         </div>
 
         {/* Center Game Area (Placeholder) */}
-        <div className="flex-1 bg-gray-50 relative group min-h-[400px] md:min-h-0">
+        <div className="w-full md:flex-1 bg-gray-50 relative group h-[500px] md:h-auto">
            {/* This simulates the game canvas */}
            <div className="absolute inset-0 flex items-center justify-center p-8">
-                <img src={game.image} alt="Game Asset" className="w-128 h-128 bg-white border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-6" />
+                <img 
+                  src={game.image} 
+                  alt="Game Asset" 
+                  className="max-w-full max-h-full object-contain bg-white border-2 border-dashed border-gray-300 rounded-xl shadow-sm" 
+                />
            </div>
            
            {/* Simulated Cursor or Tool */}

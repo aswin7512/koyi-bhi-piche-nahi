@@ -8,7 +8,7 @@ export const GAMES: Game[] = [
     targetSector: 'Stitching, Embroidery, Textile',
     skills: ['Precision', 'Steady Hands', 'Pattern Recognition'],
     thumbnail: 'https://picsum.photos/id/20/400/300',
-    image: 'pattern_weaver.jpeg'
+    image: 'pattern_weaver.png'
   },
   {
     id: '2',
@@ -17,7 +17,7 @@ export const GAMES: Game[] = [
     targetSector: 'Packaging, Binding, Logistics',
     skills: ['Spatial Awareness', 'Sequence Memory', 'Manual Dexterity'],
     thumbnail: 'https://picsum.photos/id/24/400/300',
-    image: 'gift_wrapper.jpeg'
+    image: 'gift_wrapper.png'
   },
   {
     id: '3',
@@ -26,7 +26,7 @@ export const GAMES: Game[] = [
     targetSector: 'Data Entry, Archiving, Office Assistance',
     skills: ['Visual Discrimination', 'Mouse Accuracy', 'Listening'],
     thumbnail: 'https://picsum.photos/id/48/400/300',
-    image: 'desktop_ranger.jpeg'
+    image: 'desktop_ranger.png'
   },
   {
     id: '4',
@@ -35,7 +35,7 @@ export const GAMES: Game[] = [
     targetSector: 'Production Line, Inventory, Sorting',
     skills: ['Sustained Attention', 'Categorization', 'Reaction Time'],
     thumbnail: 'https://picsum.photos/id/76/400/300',
-    image: 'color_sorter_warehouse.jpeg'
+    image: 'color_sorter_warehouse.png'
   },
   {
     id: '5',
@@ -44,7 +44,7 @@ export const GAMES: Game[] = [
     targetSector: 'Culinary Arts, Structured Manual Labor',
     skills: ['Logic & Flow', 'Cause and Effect', 'Sequencing'],
     thumbnail: 'https://picsum.photos/id/102/400/300',
-    image: 'recipe_builder.jpeg'
+    image: 'recipe_builder.png'
   }
 ];
 
