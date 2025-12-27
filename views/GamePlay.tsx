@@ -30,7 +30,7 @@ export const GamePlay: React.FC = () => {
     <div className="min-h-[calc(100vh-64px)] bg-gray-800 p-4 flex flex-col items-center justify-center">
       
       {/* Main Game Card */}
-      <div className="max-w-6xl w-full bg-white rounded-xl overflow-hidden shadow-2xl border-4 border-gray-300 flex flex-col md:flex-row h-[600px]">
+      <div className="max-w-6xl w-full bg-white rounded-xl overflow-hidden shadow-2xl border-4 border-gray-300 flex flex-col md:flex-row h-auto md:h-[600px]">
         
         {/* Left Control Panel */}
         <div className="w-full md:w-64 bg-gray-100 p-6 flex flex-col justify-between border-r border-gray-300">
@@ -56,7 +56,7 @@ export const GamePlay: React.FC = () => {
         </div>
 
         {/* Center Game Area (Placeholder) */}
-        <div className="flex-1 bg-gray-50 relative group">
+        <div className="flex-1 bg-gray-50 relative group min-h-[400px] md:min-h-0">
            {/* This simulates the game canvas */}
            <div className="absolute inset-0 flex items-center justify-center p-8">
                 <img src={game.image} alt="Game Asset" className="w-128 h-128 bg-white border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-6" />
