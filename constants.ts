@@ -7,7 +7,8 @@ export const GAMES: Game[] = [
     description: 'Connect dots following a specific pattern to test precision and steady speed.',
     targetSector: 'Stitching, Embroidery, Textile',
     skills: ['Precision', 'Steady Hands', 'Pattern Recognition'],
-    thumbnail: 'https://picsum.photos/id/20/400/300'
+    thumbnail: 'https://picsum.photos/id/20/400/300',
+    image: 'pattern_weaver.jpeg'
   },
   {
     id: '2',
@@ -15,7 +16,8 @@ export const GAMES: Game[] = [
     description: 'Drag paper and tape to cover a box in a specific sequence.',
     targetSector: 'Packaging, Binding, Logistics',
     skills: ['Spatial Awareness', 'Sequence Memory', 'Manual Dexterity'],
-    thumbnail: 'https://picsum.photos/id/24/400/300'
+    thumbnail: 'https://picsum.photos/id/24/400/300',
+    image: 'gift_wrapper.jpeg'
   },
   {
     id: '3',
@@ -23,7 +25,8 @@ export const GAMES: Game[] = [
     description: 'Find and click the correct computer icons based on auditory cues.',
     targetSector: 'Data Entry, Archiving, Office Assistance',
     skills: ['Visual Discrimination', 'Mouse Accuracy', 'Listening'],
-    thumbnail: 'https://picsum.photos/id/48/400/300'
+    thumbnail: 'https://picsum.photos/id/48/400/300',
+    image: 'desktop_ranger.jpeg'
   },
   {
     id: '4',
@@ -31,7 +34,8 @@ export const GAMES: Game[] = [
     description: 'Sort colored beads into matching buckets on a moving conveyor belt.',
     targetSector: 'Production Line, Inventory, Sorting',
     skills: ['Sustained Attention', 'Categorization', 'Reaction Time'],
-    thumbnail: 'https://picsum.photos/id/76/400/300'
+    thumbnail: 'https://picsum.photos/id/76/400/300',
+    image: 'color_sorter_warehouse.jpeg'
   },
   {
     id: '5',
@@ -39,7 +43,8 @@ export const GAMES: Game[] = [
     description: 'Drag ingredients in the exact order shown on a recipe card.',
     targetSector: 'Culinary Arts, Structured Manual Labor',
     skills: ['Logic & Flow', 'Cause and Effect', 'Sequencing'],
-    thumbnail: 'https://picsum.photos/id/102/400/300'
+    thumbnail: 'https://picsum.photos/id/102/400/300',
+    image: 'recipe_builder.jpeg'
   }
 ];
 

@@ -18,6 +18,7 @@ export interface Game {
   targetSector: string;
   skills: string[];
   thumbnail: string;
+  image: string;
 }
 
 export interface PerformanceMetric {

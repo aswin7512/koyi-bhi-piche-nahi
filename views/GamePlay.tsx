@@ -27,7 +27,9 @@ export const GamePlay: React.FC = () => {
   if (!game) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-800 p-4 flex items-center justify-center">
+    <div className="min-h-[calc(100vh-64px)] bg-gray-800 p-4 flex flex-col items-center justify-center">
+      
+      {/* Main Game Card */}
       <div className="max-w-6xl w-full bg-white rounded-xl overflow-hidden shadow-2xl border-4 border-gray-300 flex flex-col md:flex-row h-[600px]">
         
         {/* Left Control Panel */}
@@ -51,32 +53,19 @@ export const GamePlay: React.FC = () => {
               <p className="text-sm text-yellow-900 mt-1">{game.description}</p>
             </div>
           </div>
-
-          <div className="text-center">
-             <Button variant="ghost" onClick={() => navigate('/games')} className="text-red-500 hover:bg-red-50 hover:text-red-600">
-               Exit Game
-             </Button>
-          </div>
         </div>
 
         {/* Center Game Area (Placeholder) */}
         <div className="flex-1 bg-gray-50 relative group">
            {/* This simulates the game canvas */}
-           <div className="absolute inset-0 flex items-center justify-center flex-col">
-              <div className="w-64 h-64 bg-white border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-6">
-                <img src={game.thumbnail} alt="Game Asset" className="w-full h-full object-cover opacity-50 rounded-xl" />
-              </div>
-              <p className="text-gray-400 font-mono text-sm animate-pulse">Interact with elements to play...</p>
-              <div className="mt-8">
-                <Button onClick={handleFinish} className="shadow-lg animate-bounce">
-                  Simulate Complete
-                </Button>
-              </div>
+           <div className="absolute inset-0 flex items-center justify-center p-8">
+                <img src={game.image} alt="Game Asset" className="w-128 h-128 bg-white border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-6" />
            </div>
            
            {/* Simulated Cursor or Tool */}
            <div className="absolute top-1/4 left-1/4 w-8 h-8 border-2 border-indigo-500 rounded-full pointer-events-none opacity-50" />
         </div>
+
 
         {/* Right Stats Panel */}
         <div className="w-full md:w-64 bg-gray-900 text-white p-6 flex flex-col justify-between">
@@ -105,7 +94,12 @@ export const GamePlay: React.FC = () => {
              <RefreshCcw size={16} className="mr-2" /> Restart
            </Button>
         </div>
+      </div>
 
+      <div className="mt-8">
+          <Button onClick={handleFinish} className="shadow-lg animate-bounce">
+            Simulate Complete
+          </Button>
       </div>
     </div>
   );
