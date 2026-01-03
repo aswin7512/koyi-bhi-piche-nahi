@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { SAMPLE_USERS } from '../constants';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import { User } from '../types';
 import { Button } from '../components/Button';
 import { UserCircle, Key, Lock } from 'lucide-react';
@@ -13,19 +13,52 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = SAMPLE_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
+    setError('');
+    setLoading(true);
 
-    if (user) {
-      onLogin({ name: user.name, email: user.email, role: user.role });
-      navigate('/dashboard');
-    } else {
-      setError('Invalid credentials. Please use the demo accounts provided.');
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          throw new Error("Profile not found. Please contact admin.");
+        }
+
+        onLogin({ 
+          name: profile.full_name || email.split('@')[0], 
+          email: email, 
+          role: profile.role 
+        });
+
+        if (profile.role === 'admin') {
+            navigate('/admin-dashboard'); 
+        } else if (profile.role === 'parent') {
+            navigate('/parent-dashboard');
+        } else {
+            navigate('/student-dashboard');
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Invalid credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,10 +108,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           {error && <div className="text-red-500 text-sm text-center font-medium">{error}</div>}
 
           <div>
-            <Button type="submit" fullWidth>
-              Sign in
+            <Button type="submit" fullWidth disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </div>
+
+          {/* New Register Prompt */}
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Register now
+              </Link>
+            </p>
+          </div>
+
         </form>
       </div>
     </div>
