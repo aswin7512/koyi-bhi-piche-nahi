@@ -85,17 +85,3 @@ npm run dev
 ```
 
 ### **Find the Deployed app:** [click here](https://aswin7512.github.io/koyi-bhi-piche-nahi)
-
-**Use the credintials to checkout my app**
-
-* **admin login**
-    * email: `admin@example.com`
-    * password: `admin@123`
-
-* **student login**
-    * email: `student@example.com`
-    * password: `student@123`
-    
-* **parent login**
-    * email: `parent@example.com`
-    * password: `parent@123`
