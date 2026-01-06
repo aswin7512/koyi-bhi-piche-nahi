@@ -4,7 +4,7 @@ import { supabase } from './lib/supabaseClient';
 import { Navbar } from './components/Navbar';
 import { Login } from './views/Login';
 import { StudentDashboard } from './views/StudentDashboard';
-import { AdminDashboard } from './views/AdminDashboard'; // Teachers use this
+import { AdminDashboard } from './views/AdminDashboard';
 import { ParentDashboard } from './views/ParentDashboard';
 import { GameList } from './views/GameList';
 import { GameArea } from './views/GameArea';
@@ -13,7 +13,7 @@ import { GameResult } from './views/GameResult';
 import { Performance } from './views/Performance';
 import { Support } from './views/Support';
 import { Register } from './views/Register';
-import { ProfileSettings } from './views/ProfileSettings'; // <--- NEW IMPORT
+import { ProfileSettings } from './views/ProfileSettings';
 import { User } from './types';
 
 // Scroll to top component
@@ -27,10 +27,10 @@ const ScrollToTop = () => {
 
 // --- HELPER: CHECK PROFILE COMPLETION ---
 const isProfileComplete = (user: User): boolean => {
-  // We only enforce strict profiles for Students (Teacher/Parent/Admin can skip)
+  // 1. Only enforce strict profiles for Students
   if (user.role !== 'student') return true;
   
-  // Check if all mandatory fields exist and are not empty
+  // 2. Check for MANDATORY fields
   return !!(
     user.school && 
     user.class_grade && 
@@ -45,21 +45,24 @@ const isProfileComplete = (user: User): boolean => {
 const ProtectedRoute = ({ 
   user, 
   children,
-  requireProfile = true // Default is true: You MUST have a profile to see this
+  requireProfile = true 
 }: { 
   user: User | null; 
   children: React.ReactNode;
   requireProfile?: boolean;
 }) => {
+  // 1. Not Logged In? -> Go to Login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // GATEKEEPER: If profile is incomplete, force them to settings
+  // 2. Logged In BUT Incomplete Profile?
+  // We only redirect if this specific route REQUIRES a profile.
   if (requireProfile && !isProfileComplete(user)) {
     return <Navigate to="/profile-settings" replace />;
   }
 
+  // 3. All Good -> Show Page
   return <>{children}</>;
 };
 
@@ -97,7 +100,6 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); 
 
-  // 1. Defined checkUser outside useEffect so we can pass it to ProfileSettings
   const checkUser = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -105,7 +107,7 @@ const App: React.FC = () => {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*') // Select ALL fields (including new ones)
+          .select('*') 
           .eq('id', session.user.id)
           .single();
 
@@ -115,7 +117,6 @@ const App: React.FC = () => {
             name: profile.full_name,
             email: profile.email,
             role: profile.role,
-            // Map the new profile fields
             school: profile.school,
             class_grade: profile.class_grade,
             gender: profile.gender,
@@ -136,16 +137,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     checkUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) {
         setUser(null);
       } else {
-        // Optional: Reload user data on auth change to be safe
         checkUser();
       }
     });
-
     return () => subscription.unsubscribe();
   }, [checkUser]);
 
@@ -158,20 +156,13 @@ const App: React.FC = () => {
     setUser(null);
   };
 
-  // Determine dashboard based on role
   const getDashboard = () => {
     if (!user) return <Navigate to="/login" />;
-    
     switch (user.role) {
-      case 'teacher':
-        // Teacher uses the AdminDashboard component (renamed logic)
-        return <AdminDashboard user={user} />; 
-      case 'parent':
-        return <ParentDashboard user={user} />;
-      case 'student':
-        return <StudentDashboard user={user} />;
-      default:
-        return <StudentDashboard user={user} />;
+      case 'teacher': return <AdminDashboard user={user} />; 
+      case 'parent': return <ParentDashboard user={user} />;
+      case 'student': return <StudentDashboard user={user} />;
+      default: return <StudentDashboard user={user} />;
     }
   };
 
@@ -190,8 +181,6 @@ const App: React.FC = () => {
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register />} />
           
-          {/* --- NEW ROUTE: PROFILE SETTINGS --- */}
-          {/* Note: requireProfile={false} prevents infinite redirect loops */}
           <Route 
             path="/profile-settings" 
             element={
@@ -201,9 +190,23 @@ const App: React.FC = () => {
             } 
           />
           
-          {/* --- PROTECTED ROUTES (Require Complete Profile) --- */}
-          <Route path="/dashboard" element={<ProtectedRoute user={user}>{getDashboard()}</ProtectedRoute>} />
+          {/* UPDATED DASHBOARD ROUTE:
+            requireProfile={false} -> Means they can land here WITHOUT a complete profile.
+          */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute user={user} requireProfile={false}>
+                {getDashboard()}
+              </ProtectedRoute>
+            } 
+          />
           
+          {/* STRICT ROUTES:
+            These still have requireProfile={true} (by default).
+            If a user clicks "Games" from the dashboard, they will be blocked here
+            and sent to settings if their profile is incomplete.
+          */}
           <Route path="/games" element={<ProtectedRoute user={user}><GameList /></ProtectedRoute>} />
           <Route path="/game/:id/intro" element={<ProtectedRoute user={user}><GameArea /></ProtectedRoute>} />
           <Route path="/game/:id/play" element={<ProtectedRoute user={user}><GamePlay /></ProtectedRoute>} />

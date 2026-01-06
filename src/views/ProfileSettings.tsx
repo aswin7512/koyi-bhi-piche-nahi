@@ -2,13 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { User } from '../types';
 import { Button } from '../components/Button';
-import { Save, User as UserIcon, BookOpen, Phone, AlertCircle, Loader2, Camera, Lock, Key } from 'lucide-react'; // Added Lock, Key
+import { Save, User as UserIcon, BookOpen, Phone, AlertCircle, Loader2, Camera, Lock, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfileSettingsProps {
   user: User;
   onProfileUpdate: () => void;
 }
+
+// --- HELPER: Check if profile is 100% ready ---
+const isProfileFullyComplete = (data: any) => {
+  return !!(
+    data.full_name && 
+    data.school && 
+    data.class_grade && 
+    data.gender && 
+    data.dob && 
+    data.parent_contact && 
+    data.address
+  );
+};
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfileUpdate }) => {
   const navigate = useNavigate();
@@ -96,7 +109,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, avatar_url: publicUrl });
-      setMessage({ type: 'success', text: 'Photo uploaded! Remember to save changes below.' });
+      setMessage({ type: 'success', text: 'Photo uploaded! Remember to click Save below.' });
 
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
@@ -130,7 +143,16 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
       if (error) throw error;
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      onProfileUpdate();
+      onProfileUpdate(); // Update App.tsx state
+
+      // --- NEW: AUTO REDIRECT IF COMPLETE ---
+      // This sends them back to dashboard if they have filled everything in
+      if (isProfileFullyComplete(formData)) {
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500); // 1.5 second delay so they can read "Success"
+      }
+
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -138,7 +160,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     }
   };
 
-  // --- 3. HANDLE PASSWORD CHANGE (NEW) ---
+  // --- 3. HANDLE PASSWORD CHANGE ---
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassLoading(true);
@@ -155,7 +177,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     }
 
     try {
-      // A. Verify Old Password by trying to re-login
+      // A. Verify Old Password
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: passwordForm.currentPassword
