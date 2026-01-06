@@ -5,7 +5,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
-  // New Fields
+  linked_student_email?: string;
   school?: string;
   class_grade?: string;
   gender?: string;

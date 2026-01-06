@@ -124,7 +124,9 @@ const App: React.FC = () => {
             blood_group: profile.blood_group,
             parent_contact: profile.parent_contact,
             address: profile.address,
-            avatar_url: profile.avatar_url
+            avatar_url: profile.avatar_url,
+            // --- UPDATED: Map the linked student email for parents ---
+            linked_student_email: profile.linked_student_email 
           });
         }
       }
@@ -190,9 +192,7 @@ const App: React.FC = () => {
             } 
           />
           
-          {/* UPDATED DASHBOARD ROUTE:
-            requireProfile={false} -> Means they can land here WITHOUT a complete profile.
-          */}
+          {/* DASHBOARD ROUTE: Allows access without complete profile */}
           <Route 
             path="/dashboard" 
             element={
@@ -202,11 +202,7 @@ const App: React.FC = () => {
             } 
           />
           
-          {/* STRICT ROUTES:
-            These still have requireProfile={true} (by default).
-            If a user clicks "Games" from the dashboard, they will be blocked here
-            and sent to settings if their profile is incomplete.
-          */}
+          {/* STRICT ROUTES: Require complete profile */}
           <Route path="/games" element={<ProtectedRoute user={user}><GameList /></ProtectedRoute>} />
           <Route path="/game/:id/intro" element={<ProtectedRoute user={user}><GameArea /></ProtectedRoute>} />
           <Route path="/game/:id/play" element={<ProtectedRoute user={user}><GamePlay /></ProtectedRoute>} />

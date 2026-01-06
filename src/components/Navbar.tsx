@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User } from '../types';
-import { LogOut, User as UserIcon, Settings, Menu, X } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { Button } from './Button';
 
 interface NavbarProps {
@@ -26,20 +26,29 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             <span className="text-xl font-bold text-gray-900">Koyi Bhi Piche Nahi</span>
           </div>
 
-          {/* Desktop Menu */}
+          {/* ================= DESKTOP MENU ================= */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                <Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 font-medium px-3 py-2">Dashboard</Link>
-                <Link to="/games" className="text-gray-600 hover:text-indigo-600 font-medium px-3 py-2">Games</Link>
+                <Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 font-medium px-3 py-2">
+                  Dashboard
+                </Link>
+
+                {/* HIDE GAMES FOR TEACHERS & PARENTS */}
+                {user.role === 'student' && (
+                  <Link to="/games" className="text-gray-600 hover:text-indigo-600 font-medium px-3 py-2">
+                    Games
+                  </Link>
+                )}
                 
-                {/* Profile Dropdown / Link */}
+                {/* Desktop Profile Section */}
                 <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
                   <div 
                     className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
                     onClick={() => navigate('/profile-settings')}
+                    title="Edit Profile"
                   >
-                    {/* --- CONDITIONAL AVATAR RENDERING --- */}
+                    {/* AVATAR LOGIC */}
                     {user.avatar_url ? (
                       <img 
                         src={user.avatar_url} 
@@ -88,28 +97,45 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* ================= MOBILE MENU ================= */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-2 shadow-lg">
           {user ? (
             <>
-              <div className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg mb-4 cursor-pointer" onClick={() => {navigate('/profile-settings'); setIsMenuOpen(false);}}>
-                {/* --- MOBILE AVATAR --- */}
+              {/* Mobile Profile Header */}
+              <div 
+                className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg mb-4 cursor-pointer" 
+                onClick={() => {navigate('/profile-settings'); setIsMenuOpen(false);}}
+              >
+                {/* MOBILE AVATAR LOGIC */}
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-indigo-200" />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-                    {user.name?.charAt(0).toUpperCase()}
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
                 <div>
                   <p className="font-bold text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">View Profile</p>
+                  <p className="text-xs text-gray-500">View & Edit Profile</p>
                 </div>
               </div>
-              <Link to="/dashboard" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-              <Link to="/games" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>Games</Link>
-              <Link to="/profile-settings" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>Settings</Link>
+
+              <Link to="/dashboard" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                Dashboard
+              </Link>
+
+              {/* HIDE GAMES FOR TEACHERS & PARENTS (MOBILE) */}
+              {user.role === 'student' && (
+                <Link to="/games" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Games
+                </Link>
+              )}
+
+              <Link to="/profile-settings" className="block p-3 rounded-lg hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                Settings
+              </Link>
+              
               <button onClick={onLogout} className="w-full text-left p-3 rounded-lg text-red-600 hover:bg-red-50 flex items-center gap-2">
                 <LogOut size={18} /> Logout
               </button>

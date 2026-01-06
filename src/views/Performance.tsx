@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Button } from '../components/Button';
-import { Download, Loader2, Trophy } from 'lucide-react'; // Removed Share2
-import { useNavigate } from 'react-router-dom';
+import { Download, Loader2, Trophy } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { GAMES, INITIAL_RADAR_DATA, SkillCategory } from '../constants';
 import html2canvas from 'html2canvas';
@@ -12,56 +12,79 @@ interface PerformanceProps {
   studentEmail?: string | null;
 }
 
-export const Performance: React.FC<PerformanceProps> = ({ studentEmail }) => {
+export const Performance: React.FC<PerformanceProps> = ({ studentEmail: propEmail }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 1. Initialize safe state
   const [chartData, setChartData] = useState(INITIAL_RADAR_DATA);
   const [loading, setLoading] = useState(true);
   const [topSkill, setTopSkill] = useState('Undiscovered');
   const [totalGamesPlayed, setTotalGamesPlayed] = useState(0);
 
   useEffect(() => {
+    let isMounted = true; // Safety flag
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        let targetUserId = '';
+        
+        // 2. RESET STATE IMMEDIATELY to prevent stale data crashes
+        setChartData(INITIAL_RADAR_DATA);
+        setTotalGamesPlayed(0);
+        setTopSkill('Undiscovered');
 
-        if (studentEmail) {
+        let targetUserId = '';
+        const targetEmail = location.state?.studentEmail || propEmail;
+
+        if (targetEmail) {
           const { data: studentProfile } = await supabase
             .from('profiles')
             .select('id')
-            .eq('email', studentEmail)
+            .eq('email', targetEmail)
             .single();
           if (studentProfile) targetUserId = studentProfile.id;
         } else {
+          // Default: Load logged-in user's own data
           const { data: { user } } = await supabase.auth.getUser();
           if (user) targetUserId = user.id;
         }
 
         if (!targetUserId) {
-          setLoading(false);
+          if (isMounted) setLoading(false);
           return;
         }
 
         const { data: results, error } = await supabase
           .from('game_results')
-          .select('game_id, score');
+          .select('game_id, score')
+          .eq('student_id', targetUserId);
 
         if (error) throw error;
 
-        if (results && results.length > 0) {
-          calculateSkillScores(results);
-          setTotalGamesPlayed(results.length);
+        // 3. Only update state if component is still mounted
+        if (isMounted) {
+          if (results && results.length > 0) {
+            calculateSkillScores(results);
+            setTotalGamesPlayed(results.length);
+          } else {
+            // Explicitly ensure clean state if no results found
+            setChartData(INITIAL_RADAR_DATA);
+          }
         }
 
       } catch (err) {
         console.error("Error loading performance data:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
-  }, [studentEmail]);
+
+    // Cleanup function
+    return () => { isMounted = false; };
+  }, [propEmail, location.state]);
 
   const calculateSkillScores = (results: any[]) => {
     const totals: Record<SkillCategory, number> = {
@@ -100,7 +123,6 @@ export const Performance: React.FC<PerformanceProps> = ({ studentEmail }) => {
     }
   };
 
-  // --- PDF DOWNLOAD FUNCTION ---
   const handleDownloadPDF = async () => {
     const element = document.getElementById('performance-report');
     if (!element) return;
@@ -134,7 +156,6 @@ export const Performance: React.FC<PerformanceProps> = ({ studentEmail }) => {
           <p className="text-gray-500">Based on {totalGamesPlayed} game sessions</p>
         </div>
         
-        {/* Buttons - Only Download PDF remains */}
         <div className="flex gap-2" data-html2canvas-ignore="true">
           <Button onClick={handleDownloadPDF}>
             <Download size={16} className="mr-2" /> Download PDF
@@ -178,14 +199,13 @@ export const Performance: React.FC<PerformanceProps> = ({ studentEmail }) => {
 
         {/* INSIGHTS PANEL */}
         <div className="space-y-6">
-           {/* Top Skill Card */}
            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-2xl text-white shadow-lg">
              <div className="flex items-start justify-between">
                <div>
                  <p className="text-indigo-200 text-sm font-medium mb-1">Dominant Skill Set</p>
                  <h2 className="text-3xl font-bold">{topSkill} Intelligence</h2>
                  <p className="mt-2 text-indigo-100 text-sm opacity-90 max-w-xs">
-                   You show exceptional natural ability in this area based on your recent performance.
+                   Based on recent performance data.
                  </p>
                </div>
                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -194,11 +214,11 @@ export const Performance: React.FC<PerformanceProps> = ({ studentEmail }) => {
              </div>
            </div>
 
-           {/* Detailed Breakdown */}
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
              <h3 className="font-bold text-gray-900 mb-4">Detailed Breakdown</h3>
              <div className="space-y-4">
-               {chartData.sort((a,b) => b.A - a.A).slice(0, 5).map((item, i) => (
+               {/* Fixed the sort logic to safely sort a copy of the array */}
+               {[...chartData].sort((a,b) => b.A - a.A).slice(0, 5).map((item, i) => (
                  <div key={i}>
                    <div className="flex justify-between text-sm mb-1">
                      <span className="font-medium text-gray-700">{item.subject} Skills</span>
