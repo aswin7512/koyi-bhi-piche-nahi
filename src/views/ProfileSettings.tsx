@@ -10,17 +10,22 @@ interface ProfileSettingsProps {
   onProfileUpdate: () => void;
 }
 
-// --- HELPER: Check if profile is 100% ready ---
-const isProfileFullyComplete = (data: any) => {
-  return !!(
+// --- HELPER: Check if profile is 100% ready (Role-Based) ---
+const isProfileFullyComplete = (data: any, role: string) => {
+  const basicFields = (
     data.full_name && 
-    data.school && 
-    data.class_grade && 
     data.gender && 
     data.dob && 
     data.parent_contact && 
     data.address
   );
+
+  // If Student, require School & Class. If Parent/Teacher, ignore them.
+  if (role === 'student') {
+    return !!(basicFields && data.school && data.class_grade);
+  }
+  
+  return !!basicFields;
 };
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfileUpdate }) => {
@@ -70,7 +75,16 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
 
   const calculateProgress = () => {
     const requiredFields = { ...formData };
+    
+    // Remove non-required fields from calculation
     delete (requiredFields as any).avatar_url; 
+    
+    // --- KEY CHANGE: Don't count School/Grade for Parents or Teachers ---
+    if (user.role !== 'student') {
+      delete (requiredFields as any).school;
+      delete (requiredFields as any).class_grade;
+    }
+
     const fields = Object.values(requiredFields);
     const filled = fields.filter(f => f && f.toString().trim() !== '').length;
     return Math.round((filled / fields.length) * 100);
@@ -143,14 +157,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
       if (error) throw error;
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      onProfileUpdate(); // Update App.tsx state
+      onProfileUpdate(); 
 
-      // --- NEW: AUTO REDIRECT IF COMPLETE ---
-      // This sends them back to dashboard if they have filled everything in
-      if (isProfileFullyComplete(formData)) {
+      // --- AUTO REDIRECT ---
+      if (isProfileFullyComplete(formData, user.role)) {
         setTimeout(() => {
           navigate('/dashboard');
-        }, 1500); // 1.5 second delay so they can read "Success"
+        }, 1500);
       }
 
     } catch (err: any) {
@@ -166,7 +179,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     setPassLoading(true);
     setPassMessage({ type: '', text: '' });
 
-    // Basic Validation
     if (passwordForm.newPassword.length < 6) {
       setPassLoading(false);
       return setPassMessage({ type: 'error', text: 'New password must be at least 6 characters.' });
@@ -177,17 +189,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     }
 
     try {
-      // A. Verify Old Password
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: passwordForm.currentPassword
       });
 
-      if (signInError) {
-        throw new Error("Current password is incorrect.");
-      }
+      if (signInError) throw new Error("Current password is incorrect.");
 
-      // B. Update to New Password
       const { error: updateError } = await supabase.auth.updateUser({
         password: passwordForm.newPassword
       });
@@ -298,22 +306,26 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
             </div>
           </div>
 
-          {/* Academic Info Section */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
-              <BookOpen className="text-indigo-600" size={20} /> Academic Info
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">School Name</label>
-                <input name="school" value={formData.school} onChange={handleChange} className="input-field w-full p-2 border rounded-lg" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Class / Grade</label>
-                <input name="class_grade" value={formData.class_grade} onChange={handleChange} className="input-field w-full p-2 border rounded-lg" placeholder="e.g. 5-B" required />
+          {/* ACADEMIC INFO SECTION
+              Condition: Only show if user.role is 'student'
+          */}
+          {user.role === 'student' && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <BookOpen className="text-indigo-600" size={20} /> Academic Info
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">School Name</label>
+                  <input name="school" value={formData.school} onChange={handleChange} className="input-field w-full p-2 border rounded-lg" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Class / Grade</label>
+                  <input name="class_grade" value={formData.class_grade} onChange={handleChange} className="input-field w-full p-2 border rounded-lg" placeholder="e.g. 5-B" required />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Contact Details Section */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -322,7 +334,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
             </h2>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Parent's Contact Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
                 <input type="tel" name="parent_contact" value={formData.parent_contact} onChange={handleChange} className="input-field w-full p-2 border rounded-lg" required placeholder="+91..." />
               </div>
               <div>
