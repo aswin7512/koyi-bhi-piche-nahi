@@ -1,14 +1,19 @@
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  STUDENT = 'STUDENT',
-  PARENT = 'PARENT'
-}
+export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 export interface User {
-  name: string;
+  id: string;
   email: string;
+  name: string;
   role: UserRole;
-  avatar?: string;
+  // New Fields
+  school?: string;
+  class_grade?: string;
+  gender?: string;
+  dob?: string;
+  blood_group?: string;
+  parent_contact?: string;
+  address?: string;
+  avatar_url?: string;
 }
 
 export interface Game {
@@ -19,11 +24,12 @@ export interface Game {
   skills: string[];
   thumbnail: string;
   image: string;
+  metrics?: Partial<Record<string, number>>;
 }
 
 export interface PerformanceMetric {
   subject: string;
-  A: number; // Student Score
+  A: number;
   fullMark: number;
 }
 

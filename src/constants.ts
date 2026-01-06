@@ -1,68 +1,76 @@
 import { Game, PerformanceMetric, UserRole } from './types';
 
-export const GAMES: Game[] = [
+// Define the 5 specific buckets you asked for
+export type SkillCategory = 'Practical' | 'Creative' | 'Analytical' | 'Technical' | 'Social';
+
+interface GameWithMetrics extends Game {
+  // Define which skills this game improves (primary and secondary)
+  metrics: Partial<Record<SkillCategory, number>>; 
+}
+
+export const GAMES: GameWithMetrics[] = [
   {
     id: 'pattern-weaver',
     title: 'Pattern Weaver',
-    description: 'Connect dots following a specific pattern to test precision and steady speed.',
-    targetSector: 'Stitching, Embroidery, Textile',
-    skills: ['Precision', 'Steady Hands', 'Pattern Recognition'],
-    thumbnail: 'https://images.unsplash.com/photo-1628144214470-363d681c62b9?auto=format&fit=crop&q=80',
-    image: 'pattern_weaver.png'
+    description: 'Connect dots following a specific pattern.',
+    targetSector: 'Stitching, Embroidery',
+    skills: ['Precision', 'Pattern Recognition'],
+    thumbnail: 'pattern-weaver-thumb.jpg',
+    image: 'pattern_weaver.png',
+    // MAPPING: Heavy on Creative (patterns) and Practical (steady hand)
+    metrics: { Creative: 0.7, Practical: 0.3 } 
   },
   {
     id: '3d-gift-wrapper',
     title: '3D Gift Wrapper',
-    description: 'Drag paper and tape to cover a box in a specific sequence.',
-    targetSector: 'Packaging, Binding, Logistics',
-    skills: ['Spatial Awareness', 'Sequence Memory', 'Manual Dexterity'],
-    thumbnail: 'https://images.unsplash.com/photo-1606836437815-512c14526d55?auto=format&fit=crop&q=80',
-    image: 'gift_wrapper.png'
+    description: 'Wrap boxes in specific sequences.',
+    targetSector: 'Packaging, Logistics',
+    skills: ['Spatial Awareness', 'Dexterity'],
+    thumbnail: 'gift-wrapper-thumb.jpg',
+    image: 'gift_wrapper.png',
+    // MAPPING: Practical (manual work) and Technical (processes)
+    metrics: { Practical: 0.6, Technical: 0.4 }
   },
   {
     id: 'desktop-ranger',
     title: 'Desktop Ranger',
-    description: 'Find and click the correct computer icons based on auditory cues.',
-    targetSector: 'Data Entry, Archiving, Office Assistance',
-    skills: ['Visual Discrimination', 'Mouse Accuracy', 'Listening'],
-    thumbnail: 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80',
-    image: 'desktop_ranger.png'
+    description: 'Find icons based on auditory/visual cues.',
+    targetSector: 'Data Entry, Office Admin',
+    skills: ['Computer Literacy', 'Listening'],
+    thumbnail: 'desktop-ranger-thumb.jpg',
+    image: 'desktop_ranger.png',
+    // MAPPING: Technical (computer skills) and Social (Listening/Instructions)
+    metrics: { Technical: 0.7, Social: 0.3 }
   },
   {
     id: 'color-sorter',
-    title: 'Color Sorter Warehouse',
-    description: 'Sort colored beads into matching buckets on a moving conveyor belt.',
-    targetSector: 'Production Line, Inventory, Sorting',
-    skills: ['Sustained Attention', 'Categorization', 'Reaction Time'],
-    thumbnail: 'https://images.unsplash.com/photo-1595562768549-d7790b503002?auto=format&fit=crop&q=80',
-    image: 'color_sorter_warehouse.png'
+    title: 'Color Sorter',
+    description: 'Sort items quickly into bins.',
+    targetSector: 'Manufacturing, Sorting',
+    skills: ['Attention', 'Speed'],
+    thumbnail: 'color-sorter-thumb.jpg',
+    image: 'color_sorter_warehouse.png',
+    // MAPPING: Analytical (categorization) and Practical (speed)
+    metrics: { Analytical: 0.6, Practical: 0.4 }
   },
   {
     id: 'recipe-builder',
     title: 'Recipe Builder',
-    description: 'Drag ingredients in the exact order shown on a recipe card.',
-    targetSector: 'Culinary Arts, Structured Manual Labor',
-    skills: ['Logic & Flow', 'Cause and Effect', 'Sequencing'],
-    thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&q=80',
-    image: 'recipe_builder.png'
+    description: 'Follow recipes exactly.',
+    targetSector: 'Culinary, Hospitality',
+    skills: ['Sequencing', 'Logic'],
+    thumbnail: 'recipe-builder-thumb.jpg',
+    image: 'recipe_builder.png',
+    // MAPPING: Analytical (logic) and Social (Service/Hospitality context)
+    metrics: { Analytical: 0.5, Social: 0.5 }
   }
 ];
 
-export const MOCK_RADAR_DATA: PerformanceMetric[] = [
-  { subject: 'Memory', A: 120, fullMark: 150 },
-  { subject: 'Visual', A: 98, fullMark: 150 },
-  { subject: 'Motor', A: 86, fullMark: 150 },
-  { subject: 'Logic', A: 99, fullMark: 150 },
-  { subject: 'Emotional', A: 85, fullMark: 150 },
-  { subject: 'Flexibility', A: 65, fullMark: 150 },
+// Initial Empty Data for the Chart
+export const INITIAL_RADAR_DATA = [
+  { subject: 'Practical', A: 0, fullMark: 100 },
+  { subject: 'Creative', A: 0, fullMark: 100 },
+  { subject: 'Analytical', A: 0, fullMark: 100 },
+  { subject: 'Technical', A: 0, fullMark: 100 },
+  { subject: 'Social', A: 0, fullMark: 100 },
 ];
-
-export const MOCK_LINE_DATA = [
-  { name: 'Jan', score: 400 },
-  { name: 'Feb', score: 600 },
-  { name: 'Mar', score: 800 },
-  { name: 'Apr', score: 750 },
-  { name: 'May', score: 950 },
-  { name: 'Jun', score: 1100 },
-];
-

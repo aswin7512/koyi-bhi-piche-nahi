@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { supabase } from './lib/supabaseClient'; // <--- IMPORT SUPABASE
+import { supabase } from './lib/supabaseClient'; 
 import { Navbar } from './components/Navbar';
 import { Login } from './views/Login';
 import { StudentDashboard } from './views/StudentDashboard';
-import { AdminDashboard } from './views/AdminDashboard';
+import { AdminDashboard } from './views/AdminDashboard'; // Teachers use this
 import { ParentDashboard } from './views/ParentDashboard';
 import { GameList } from './views/GameList';
 import { GameArea } from './views/GameArea';
@@ -13,7 +13,8 @@ import { GameResult } from './views/GameResult';
 import { Performance } from './views/Performance';
 import { Support } from './views/Support';
 import { Register } from './views/Register';
-import { User } from './types'; // Removed UserRole enum import if you switched to string types
+import { ProfileSettings } from './views/ProfileSettings'; // <--- NEW IMPORT
+import { User } from './types';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -24,17 +25,41 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Protected Route Wrapper
+// --- HELPER: CHECK PROFILE COMPLETION ---
+const isProfileComplete = (user: User): boolean => {
+  // We only enforce strict profiles for Students (Teacher/Parent/Admin can skip)
+  if (user.role !== 'student') return true;
+  
+  // Check if all mandatory fields exist and are not empty
+  return !!(
+    user.school && 
+    user.class_grade && 
+    user.gender && 
+    user.dob && 
+    user.parent_contact && 
+    user.address
+  );
+};
+
+// --- PROTECTED ROUTE GATEKEEPER ---
 const ProtectedRoute = ({ 
   user, 
-  children 
+  children,
+  requireProfile = true // Default is true: You MUST have a profile to see this
 }: { 
   user: User | null; 
-  children: React.ReactNode 
+  children: React.ReactNode;
+  requireProfile?: boolean;
 }) => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // GATEKEEPER: If profile is incomplete, force them to settings
+  if (requireProfile && !isProfileComplete(user)) {
+    return <Navigate to="/profile-settings" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -61,7 +86,6 @@ const LandingPage = () => {
           Our platform uses engaging games to identify skill sets in stitching, packaging, computer tasks, sorting, and more. We believe everyone has a path to success.
         </p>
         <div className="flex justify-center gap-4">
-           {/* Changed to Link for faster navigation */}
            <a href="#/login" className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition">Get Started</a>
         </div>
       </div>
@@ -73,67 +97,75 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); 
 
-  useEffect(() => {
-    // 1. Check for active session on load
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Fetch the user's role from the 'profiles' table
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+  // 1. Defined checkUser outside useEffect so we can pass it to ProfileSettings
+  const checkUser = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*') // Select ALL fields (including new ones)
+          .eq('id', session.user.id)
+          .single();
 
-          if (profile) {
-            setUser({
-              id: session.user.id,
-              name: profile.full_name,
-              email: profile.email,
-              role: profile.role
-            });
-          }
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            name: profile.full_name,
+            email: profile.email,
+            role: profile.role,
+            // Map the new profile fields
+            school: profile.school,
+            class_grade: profile.class_grade,
+            gender: profile.gender,
+            dob: profile.dob,
+            blood_group: profile.blood_group,
+            parent_contact: profile.parent_contact,
+            address: profile.address,
+            avatar_url: profile.avatar_url
+          });
         }
-      } catch (error) {
-        console.error("Error checking session:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error checking session:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
     checkUser();
 
-    // 2. Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) {
         setUser(null);
+      } else {
+        // Optional: Reload user data on auth change to be safe
+        checkUser();
       }
-      // Note: We rely on the initial fetch or the Login component to set the user
-      // so we don't fetch profile redundantly here
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkUser]);
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut(); // Sign out from Supabase
+    await supabase.auth.signOut();
     setUser(null);
   };
 
   // Determine dashboard based on role
-  // Note: Updated cases to match Supabase strings ('teacher', 'student', etc.)
   const getDashboard = () => {
     if (!user) return <Navigate to="/login" />;
     
     switch (user.role) {
       case 'teacher':
-        return <AdminDashboard />;
+        // Teacher uses the AdminDashboard component (renamed logic)
+        return <AdminDashboard user={user} />; 
       case 'parent':
         return <ParentDashboard user={user} />;
       case 'student':
@@ -143,7 +175,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Don't render anything until we know if the user is logged in
   if (loading) {
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -159,9 +190,20 @@ const App: React.FC = () => {
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register />} />
           
+          {/* --- NEW ROUTE: PROFILE SETTINGS --- */}
+          {/* Note: requireProfile={false} prevents infinite redirect loops */}
+          <Route 
+            path="/profile-settings" 
+            element={
+              <ProtectedRoute user={user} requireProfile={false}>
+                <ProfileSettings user={user!} onProfileUpdate={checkUser} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* --- PROTECTED ROUTES (Require Complete Profile) --- */}
           <Route path="/dashboard" element={<ProtectedRoute user={user}>{getDashboard()}</ProtectedRoute>} />
           
-          {/* Shared Routes */}
           <Route path="/games" element={<ProtectedRoute user={user}><GameList /></ProtectedRoute>} />
           <Route path="/game/:id/intro" element={<ProtectedRoute user={user}><GameArea /></ProtectedRoute>} />
           <Route path="/game/:id/play" element={<ProtectedRoute user={user}><GamePlay /></ProtectedRoute>} />

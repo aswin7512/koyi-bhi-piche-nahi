@@ -1,29 +1,57 @@
-// src/views/GamePlay.tsx
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GAMES } from '../constants';
-import { Button } from '../components/Button';
-import { ArrowLeft } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
-// Import your new game components
+// Import ALL Game Components
 import { PatternWeaver } from './games/PatternWeaver';
 import { ColorSorter } from './games/ColorSorter';
 import { DesktopRanger } from './games/DesktopRanger';
+import { GiftWrapper } from './games/GiftWrapper';
+import { RecipeBuilder } from './games/RecipeBuilder';
 
 export const GamePlay: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const game = GAMES.find(g => g.id === id);
+  const [saving, setSaving] = useState(false);
 
-  // This function handles the game over state
-  const handleGameEnd = (finalScore: number) => {
-    // Navigate to results passing the score
-    navigate(`/game/${id}/result`, { 
-      state: { 
-        score: finalScore, 
-        timer: '0:45' // You can pass real timer if you track it
-      } 
-    });
+  // --- SAVE TO DATABASE FUNCTION ---
+  const handleGameEnd = async (finalScore: number, timeTaken: number) => {
+    setSaving(true);
+    try {
+      // 1. Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && id) {
+        // 2. Insert Result
+        const { error } = await supabase
+          .from('game_results')
+          .insert([
+            {
+              student_id: user.id,
+              game_id: id,
+              score: finalScore,
+              time_taken: timeTaken
+            }
+          ]);
+
+        if (error) throw error;
+      }
+      
+      // 3. Navigate to Result Page
+      navigate(`/game/${id}/result`, { 
+        state: { score: finalScore, timer: timeTaken } 
+      });
+
+    } catch (err) {
+      console.error("Error saving score:", err);
+      alert("Failed to save score due to network error. Proceeding to results.");
+      navigate(`/game/${id}/result`, { state: { score: finalScore, timer: timeTaken } });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!game) return <div>Game not found</div>;
@@ -33,35 +61,39 @@ export const GamePlay: React.FC = () => {
       
       {/* Header */}
       <div className="w-full max-w-4xl flex justify-between items-center text-white mb-8">
-        <button onClick={() => navigate('/games')} className="flex items-center hover:text-indigo-400">
+        <button onClick={() => navigate('/games')} className="flex items-center hover:text-indigo-400 transition-colors">
           <ArrowLeft className="mr-2" /> Exit Activity
         </button>
-        <h2 className="text-2xl font-bold">{game.title}</h2>
-        <div className="w-24"></div> {/* Spacer for centering */}
+        <h2 className="text-2xl font-bold tracking-wide">{game.title}</h2>
+        <div className="w-24"></div> {/* Spacer */}
       </div>
 
-      {/* Dynamic Game Container */}
-      <div className="max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[500px] flex items-center justify-center p-8 relative">
+      {/* Game Container */}
+      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[500px] flex items-center justify-center p-8 relative">
         
-        {/* Render the correct game based on ID */}
-        {id === 'pattern-weaver' && <PatternWeaver onEnd={handleGameEnd} />}
-        {id === 'color-sorter' && <ColorSorter onEnd={handleGameEnd} />}
-        {id === 'desktop-ranger' && <DesktopRanger onEnd={handleGameEnd} />}
-
-        {/* Fallback for games not yet implemented */}
-        {!['pattern-weaver', 'color-sorter', 'desktop-ranger'].includes(id || '') && (
-          <div className="text-center">
-            <p className="text-gray-500 mb-4">This simulation is under construction.</p>
-            <Button onClick={() => handleGameEnd(100)}>Simulate Pass</Button>
+        {saving ? (
+          <div className="text-center animate-fade-in">
+            <Loader2 className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Analyzing Performance...</h3>
+            <p className="text-gray-500 font-medium">Saving your results to the cloud.</p>
+          </div>
+        ) : (
+          // Render the correct game component based on ID
+          <div className="w-full flex justify-center animate-fade-in">
+            {id === 'pattern-weaver' && <PatternWeaver onEnd={handleGameEnd} />}
+            {id === 'color-sorter' && <ColorSorter onEnd={handleGameEnd} />}
+            {id === 'desktop-ranger' && <DesktopRanger onEnd={handleGameEnd} />}
+            {id === '3d-gift-wrapper' && <GiftWrapper onEnd={handleGameEnd} />}
+            {id === 'recipe-builder' && <RecipeBuilder onEnd={handleGameEnd} />}
           </div>
         )}
       </div>
 
-      {/* Instructions Footer */}
-      <div className="mt-8 text-gray-400 max-w-2xl text-center">
-        <p>Instructions: {game.description}</p>
+      {/* Footer Instructions */}
+      <div className="mt-8 text-gray-400 text-center max-w-lg bg-gray-800/50 p-4 rounded-xl backdrop-blur-sm">
+        <p className="text-xs uppercase tracking-widest mb-2 font-bold text-indigo-400">Task Objective</p>
+        <p className="text-sm leading-relaxed">{game.description}</p>
       </div>
-
     </div>
   );
 };
