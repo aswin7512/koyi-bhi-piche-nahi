@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { User } from '../types';
 import { Button } from '../components/Button';
-import { Save, User as UserIcon, BookOpen, Phone, AlertCircle, Loader2, Camera, Lock, Key } from 'lucide-react';
+import { Save, User as UserIcon, BookOpen, Phone, AlertCircle, Loader2, Camera, Lock, Key, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfileSettingsProps {
@@ -20,7 +20,7 @@ const isProfileFullyComplete = (data: any, role: string) => {
     data.address
   );
 
-  // If Student, require School & Class. If Parent/Teacher, ignore them.
+  // If Student, require School & Class. 
   if (role === 'student') {
     return !!(basicFields && data.school && data.class_grade);
   }
@@ -52,8 +52,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     dob: '',
     blood_group: '',
     parent_contact: '',
+    parent_email: '',
     address: '',
     avatar_url: '',
+    disability_category: '', 
   });
 
   // Load user data
@@ -67,8 +69,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
         dob: user.dob || '',
         blood_group: user.blood_group || '',
         parent_contact: user.parent_contact || '',
+        parent_email: user.linked_student_email || '', 
         address: user.address || '',
         avatar_url: user.avatar_url || '',
+        disability_category: (user as any).disability_category || '',
       });
     }
   }, [user]);
@@ -78,11 +82,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     
     // Remove non-required fields from calculation
     delete (requiredFields as any).avatar_url; 
+    delete (requiredFields as any).parent_email;
     
-    // --- KEY CHANGE: Don't count School/Grade for Parents or Teachers ---
+    // Logic: If NOT a student, remove student-specific fields
     if (user.role !== 'student') {
       delete (requiredFields as any).school;
       delete (requiredFields as any).class_grade;
+      delete (requiredFields as any).disability_category;
     }
 
     const fields = Object.values(requiredFields);
@@ -138,6 +144,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
     setLoading(true);
     setMessage({ type: '', text: '' });
 
+    // --- CRITICAL SAFETY CHECK ---
+    // This prevents the "invalid input syntax for type uuid: undefined" error
+    if (!user.id || user.id === 'undefined') {
+      setLoading(false);
+      setMessage({ type: 'error', text: 'Session error. Please logout and login again.' });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -151,6 +165,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
           parent_contact: formData.parent_contact,
           address: formData.address,
           avatar_url: formData.avatar_url,
+          disability_category: formData.disability_category, 
         })
         .eq('id', user.id);
 
@@ -159,7 +174,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       onProfileUpdate(); 
 
-      // --- AUTO REDIRECT ---
       if (isProfileFullyComplete(formData, user.role)) {
         setTimeout(() => {
           navigate('/dashboard');
@@ -167,6 +181,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
       }
 
     } catch (err: any) {
+      console.error(err);
       setMessage({ type: 'error', text: err.message });
     } finally {
       setLoading(false);
@@ -266,7 +281,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
             </div>
           </div>
 
-          {/* Personal Details Section */}
+          {/* Personal Details Section (Visible to Everyone) */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
               <UserIcon className="text-indigo-600" size={20} /> Personal Details
@@ -306,9 +321,32 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
             </div>
           </div>
 
-          {/* ACADEMIC INFO SECTION
-              Condition: Only show if user.role is 'student'
-          */}
+          {/* --- DISABILITY DETAILS (STUDENTS ONLY) --- */}
+          {user.role === 'student' && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Activity className="text-indigo-600" size={20} /> Disability Details
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category of Retardation</label>
+                  <select 
+                    name="disability_category" 
+                    value={formData.disability_category} 
+                    onChange={handleChange} 
+                    className="input-field w-full p-2 border rounded-lg"
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Mild">Mild</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Severe">Severe</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Academic Info Section (STUDENTS ONLY) */}
           {user.role === 'student' && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
@@ -327,7 +365,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onProfil
             </div>
           )}
 
-          {/* Contact Details Section */}
+          {/* Contact Details Section (Visible to Everyone) */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-2">
               <Phone className="text-indigo-600" size={20} /> Contact Details

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Search, Loader2, Calendar, Gamepad2, TrendingUp, Trophy, ArrowRight, User as UserIcon } from 'lucide-react';
+import { Users, Search, Loader2, Calendar, Gamepad2, TrendingUp, Trophy, ArrowRight, User as UserIcon, Activity } from 'lucide-react'; // Added Activity
 import { supabase } from '../lib/supabaseClient';
 import { User } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +17,7 @@ interface StudentProfile {
   school?: string;
   class_grade?: string;
   avatar_url?: string;
+  disability_category?: string; // <--- Added this field
 }
 
 interface GameResult {
@@ -67,7 +68,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       
       setLoadingDetails(true);
       try {
-        // Find ID from the already loaded students list (saves a DB call)
         const student = students.find(s => s.email === selectedStudentEmail);
         if (!student) return;
 
@@ -223,11 +223,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">{selectedStudent.full_name}</h2>
                       <p className="text-sm text-gray-500">{selectedStudent.school || 'School Info Pending'}</p>
-                      {selectedStudent.class_grade && (
-                         <span className="inline-block mt-1 text-xs font-medium bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
-                           {selectedStudent.class_grade}
-                         </span>
-                      )}
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {selectedStudent.class_grade && (
+                           <span className="text-xs font-medium bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                             {selectedStudent.class_grade}
+                           </span>
+                        )}
+                        
+                        {/* --- NEW: Disability Category Badge (Teacher View) --- */}
+                        {selectedStudent.disability_category && (
+                          <span className="text-xs font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-200 flex items-center gap-1">
+                            <Activity size={10} /> {selectedStudent.disability_category}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   

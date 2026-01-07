@@ -14,6 +14,7 @@ export interface User {
   parent_contact?: string;
   address?: string;
   avatar_url?: string;
+  disability_category?: string;
 }
 
 export interface Game {

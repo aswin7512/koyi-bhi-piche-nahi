@@ -125,8 +125,8 @@ const App: React.FC = () => {
             parent_contact: profile.parent_contact,
             address: profile.address,
             avatar_url: profile.avatar_url,
-            // --- UPDATED: Map the linked student email for parents ---
-            linked_student_email: profile.linked_student_email 
+            linked_student_email: profile.linked_student_email,
+            disability_category: profile.disability_category
           });
         }
       }

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { User } from '../types';
 import { Button } from '../components/Button';
-import { Trophy, Calendar, TrendingUp, Gamepad2, User as UserIcon, Loader2, AlertCircle, Save, Link as LinkIcon, ArrowRight } from 'lucide-react'; // Added ArrowRight
+import { Trophy, Calendar, TrendingUp, Gamepad2, User as UserIcon, Loader2, AlertCircle, Save, Link as LinkIcon, ArrowRight, Activity } from 'lucide-react'; // Added Activity icon
 import { GAMES } from '../constants';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 interface ParentDashboardProps {
   user: User;
@@ -17,6 +17,7 @@ interface StudentProfile {
   class_grade: string;
   avatar_url: string;
   email: string;
+  disability_category?: string;
 }
 
 interface GameResult {
@@ -27,7 +28,7 @@ interface GameResult {
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [linking, setLinking] = useState(false);
   
@@ -70,7 +71,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
     try {
       const { data: student, error: studentError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*') // This fetches all columns, including disability_category
         .eq('email', studentEmail)
         .single();
 
@@ -193,7 +194,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
            <p className="text-gray-500">Monitoring progress for: <span className="font-bold text-indigo-600">{childProfile?.full_name}</span></p>
         </div>
         
-        {/* --- BUTTON TO PERFORMANCE PAGE --- */}
         <Button 
           onClick={() => navigate('/performance', { state: { studentEmail: childProfile?.email } })}
           className="shadow-md"
@@ -205,7 +205,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Column */}
+        {/* Left Column: Student Details */}
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
             {childProfile?.avatar_url ? (
@@ -218,6 +218,18 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
             <h2 className="text-2xl font-bold text-gray-900">{childProfile?.full_name}</h2>
             <p className="text-gray-500">{childProfile?.school}</p>
             <p className="text-indigo-600 font-medium text-sm mt-1">{childProfile?.class_grade}</p>
+
+            {childProfile?.disability_category && (
+              <div className="mt-4 pt-4 border-t border-gray-100 w-full">
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1 flex items-center justify-center gap-1">
+                  <Activity size={12} /> Disability Category
+                </p>
+                <span className="inline-block bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-medium border border-red-100">
+                  {childProfile.disability_category}
+                </span>
+              </div>
+            )}
+            
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -238,13 +250,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column: Assessment History */}
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
              <h3 className="font-bold text-gray-900 flex items-center gap-2">
                <Calendar className="text-indigo-600" size={20} /> Assessment History
              </h3>
-             {/* Small Link to Full Report as well */}
              <button 
                onClick={() => navigate('/performance', { state: { studentEmail: childProfile?.email } })}
                className="text-sm text-indigo-600 font-medium hover:text-indigo-800 flex items-center gap-1"
