@@ -28,28 +28,42 @@ Here is an overview of the file structure for the project:
 
 ```text
 .
-├── App.tsx                  # Main Application Component
-├── components               # Reusable UI components
-│   ├── Button.tsx
-│   └── Navbar.tsx
-├── constants.ts             # Global constants and configuration
-├── index.html               # Entry HTML file
-├── index.tsx                # Entry point for React
-├── public                   # Static assets
-│   └── cover.jpg
-├── types.ts                 # TypeScript type definitions
-├── views                    # Page components and Route views
-│   ├── AdminDashboard.tsx
-│   ├── GameArea.tsx
-│   ├── GameList.tsx
-│   ├── GamePlay.tsx
-│   ├── GameResult.tsx
-│   ├── Login.tsx
-│   ├── ParentDashboard.tsx
-│   ├── Performance.tsx
-│   ├── StudentDashboard.tsx
-│   └── Support.tsx
-└── vite.config.ts           # Vite configuration
+├── index.html                   # Entry HTML file
+├── package.json                 # Project dependencies and scripts
+├── public                       # Static assets (images, icons, favicons)
+│   ├── cover.jpg
+│   └── ...
+├── src
+│   ├── App.tsx                  # Main Application Component & Router configuration
+│   ├── components               # Reusable UI components
+│   │   ├── Button.tsx
+│   │   └── Navbar.tsx
+│   ├── constants.ts             # Global constants (Game definitions, config)
+│   ├── index.tsx                # Entry point for React application
+│   ├── lib                      # Library configurations
+│   │   └── supabaseClient.ts    # Supabase DB connection client
+│   ├── types.ts                 # TypeScript type definitions (User interfaces, etc.)
+│   └── views                    # Page components and Route views
+│       ├── AdminDashboard.tsx   # Teacher/Admin dashboard view
+│       ├── GameArea.tsx         # Game introduction wrapper
+│       ├── GameList.tsx         # Grid view of available games
+│       ├── GamePlay.tsx         # Active game session container
+│       ├── GameResult.tsx       # Post-game scoring and feedback screen
+│       ├── games                # Individual game logic components
+│       │   ├── ColorSorter.tsx
+│       │   ├── DesktopRanger.tsx
+│       │   ├── GiftWrapper.tsx
+│       │   ├── PatternWeaver.tsx
+│       │   └── RecipeBuilder.tsx
+│       ├── Login.tsx            # User authentication screen
+│       ├── ParentDashboard.tsx  # Parent monitoring dashboard
+│       ├── Performance.tsx      # Analytics, charts, and progress reports
+│       ├── ProfileSettings.tsx  # User profile and settings management
+│       ├── Register.tsx         # New user registration screen
+│       ├── StudentDashboard.tsx # Main landing dashboard for students
+│       └── Support.tsx          # Support and help documentation
+├── tsconfig.json                # TypeScript configuration
+└── vite.config.ts               # Vite build configuration
 ```
 
 ## 🚀 Getting Started
